@@ -3,19 +3,19 @@
   "category": "misc",
   "key": {
     "B": {
-      "tag": "c:barrels/wooden"
-    },
-    "W": {
-      "tag": "minecraft:wind_charge"
+      "tag": "c:barrels"
     },
     "S": {
       "tag": "minecraft:wooden_slabs"
+    },
+    "W": {
+      "item": "minecraft:wind_charge"
     }
   },
   "pattern": [
     "B",
-    "W",
-    "S"
+    "S",
+    "W"
   ],
   "result": {
     "count": 1,

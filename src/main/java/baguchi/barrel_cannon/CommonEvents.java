@@ -1,10 +1,13 @@
 package baguchi.barrel_cannon;
 
 import baguchi.barrel_cannon.attachment.BlastAttachment;
+import baguchi.barrel_cannon.entity.BarrelCannon;
 import baguchi.barrel_cannon.registry.ModAttachments;
+import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 @EventBusSubscriber(modid = BarrelCannonMod.MODID)
@@ -24,6 +27,21 @@ public class CommonEvents {
 
         if(blastAttachment != null && blastAttachment.isBlasted()){
             event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onHurt(LivingIncomingDamageEvent event) {
+        if (event.getSource().getDirectEntity() instanceof LivingEntity living) {
+            if (living.getVehicle() instanceof BarrelCannon) {
+                event.setCanceled(true);
+            }
+
+        }
+        if (event.getEntity() instanceof LivingEntity living) {
+            if (living.getVehicle() instanceof BarrelCannon) {
+                event.setCanceled(true);
+            }
         }
     }
 }

@@ -36,7 +36,7 @@ public class BarrelCannonRenderer<T extends BarrelCannon> extends EntityRenderer
         if (partialTicks > 0.0F) {
             poseStack.mulPose(Axis.XP.rotationDegrees(Mth.sin(partialTicks) * f2 * f1 / 10.0F * (float) entity.getHurtDir()));
         }
-        poseStack.translate(0.0F, -1.501F + 8F / 16F, -2.5F / 16F);
+        poseStack.translate(0.0F, -1.501F + 8F / 16F, 0F);
         this.model.setupAnim(entity, g, 0.0F, -0.1F, 0.0F, 0.0F);
         VertexConsumer vertexConsumer = multiBufferSource.getBuffer(this.model.renderType(LOCATION));
         this.model.renderToBuffer(poseStack, vertexConsumer, i, OverlayTexture.NO_OVERLAY);

@@ -40,7 +40,7 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
         this.xo = x;
         this.yo = y;
         this.zo = z;
-        this.placedCooldown = 100;
+        this.placedCooldown = 80;
     }
 
     @Override
@@ -174,7 +174,7 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
                 for (Entity entity : list) {
                     BlastAttachment blastAttachment = entity.getData(ModAttachments.BLAST.get());
                     if (!entity.hasPassenger(this)) {
-                        if (!entity.isShiftKeyDown() && flag
+                        if (!entity.isShiftKeyDown() && entity.getBbWidth() <= 0.95F && flag
                                 && this.getPassengers().size() < this.getMaxPassengers()
                                 && !entity.isPassenger()
                                 && this.hasEnoughSpaceFor(entity)
