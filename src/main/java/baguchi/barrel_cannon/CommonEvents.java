@@ -10,7 +10,7 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 @EventBusSubscriber(modid = BarrelCannonMod.MODID)
 public class CommonEvents {
     @SubscribeEvent
-    public static void onTick(EntityTickEvent.Post event) {
+    public static void onTick(EntityTickEvent.Pre event) {
         BlastAttachment blastAttachment = event.getEntity().getData(ModAttachments.BLAST.get());
 
         if(blastAttachment != null){

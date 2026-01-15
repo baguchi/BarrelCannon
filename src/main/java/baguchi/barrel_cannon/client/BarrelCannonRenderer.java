@@ -21,17 +21,27 @@ public class BarrelCannonRenderer<T extends BarrelCannon> extends EntityRenderer
         this.model = new BarrelCannonModel<>(context.bakeLayer(ModModelLayers.BARREL_CANNON));
     }
 
-    public void render(T llamaSpit, float f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i) {
+    @Override
+    public void render(T entity, float partialTicks, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, int i) {
         poseStack.pushPose();
-        poseStack.translate(0.0F, 4F / 16F, 0.0F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(g, llamaSpit.yRotO, llamaSpit.getYRot()) - 180F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(Mth.lerp(g, llamaSpit.xRotO, llamaSpit.getXRot())));
+        poseStack.translate(0.0F, 8F / 16F, 0.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - Mth.lerp(g, entity.yRotO, entity.getYRot()) - 90.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(g, entity.xRotO, entity.getXRot()) - 90));
+        float f2 = (float) entity.getHurtTime() - partialTicks;
+        float f1 = entity.getDamage() - partialTicks;
+        if (f1 < 0.0F) {
+            f1 = 0.0F;
+        }
+
+        if (partialTicks > 0.0F) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(Mth.sin(partialTicks) * f2 * f1 / 10.0F * (float) entity.getHurtDir()));
+        }
         poseStack.translate(0.0F, -1.501F + 8F / 16F, -2.5F / 16F);
-        this.model.setupAnim(llamaSpit, g, 0.0F, -0.1F, 0.0F, 0.0F);
+        this.model.setupAnim(entity, g, 0.0F, -0.1F, 0.0F, 0.0F);
         VertexConsumer vertexConsumer = multiBufferSource.getBuffer(this.model.renderType(LOCATION));
         this.model.renderToBuffer(poseStack, vertexConsumer, i, OverlayTexture.NO_OVERLAY);
         poseStack.popPose();
-        super.render(llamaSpit, f, g, poseStack, multiBufferSource, i);
+        super.render(entity, partialTicks, g, poseStack, multiBufferSource, i);
     }
 
     public ResourceLocation getTextureLocation(T llamaSpit) {

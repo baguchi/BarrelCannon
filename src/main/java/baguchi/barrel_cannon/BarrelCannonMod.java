@@ -4,17 +4,18 @@ import baguchi.barrel_cannon.registry.ModAttachments;
 import baguchi.barrel_cannon.registry.ModCreativeTabs;
 import baguchi.barrel_cannon.registry.ModEntities;
 import baguchi.barrel_cannon.registry.ModItems;
-import net.minecraft.world.item.CreativeModeTabs;
+import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(BarrelCannonMod.MODID)
 public class BarrelCannonMod {
+    public static final Logger LOGGER = LogUtils.getLogger();
+
     // Define mod id in a common place for everything to reference
     public static final String MODID = "barrel_cannon";
 

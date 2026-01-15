@@ -1,6 +1,7 @@
 package baguchi.barrel_cannon.item;
 
 import baguchi.barrel_cannon.entity.BarrelCannon;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -52,7 +54,7 @@ public class BarrelCannonItem extends Item {
 
             if (hitresult.getType() == HitResult.Type.BLOCK) {
                 BarrelCannon barrelCannon = this.getBarrelCannon(level, hitresult, itemstack, player);
-                barrelCannon.setXRot(-player.getXRot());
+                barrelCannon.setXRot(player.isShiftKeyDown() ? player.getXRot() : -player.getXRot());
                 barrelCannon.setYRot(player.getYRot());
                 if (!level.noCollision(barrelCannon, barrelCannon.getBoundingBox())) {
                     return InteractionResultHolder.fail(itemstack);
@@ -74,7 +76,8 @@ public class BarrelCannonItem extends Item {
 
     private BarrelCannon getBarrelCannon(Level level, HitResult hitResult, ItemStack stack, Player player) {
         Vec3 vec3 = hitResult.getLocation();
-        BarrelCannon boat = new BarrelCannon(level, vec3.x, vec3.y, vec3.z);
+        Direction direction = ((BlockHitResult) hitResult).getDirection();
+        BarrelCannon boat = new BarrelCannon(level, vec3.x + direction.getStepX(), vec3.y + direction.getStepY(), vec3.z + direction.getStepZ());
         if (level instanceof ServerLevel serverlevel) {
             EntityType.<BarrelCannon>createDefaultStackConfig(serverlevel, stack, player).accept(boat);
         }

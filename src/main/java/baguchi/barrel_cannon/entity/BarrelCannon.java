@@ -4,30 +4,29 @@ import baguchi.barrel_cannon.attachment.BlastAttachment;
 import baguchi.barrel_cannon.registry.ModAttachments;
 import baguchi.barrel_cannon.registry.ModEntities;
 import baguchi.barrel_cannon.registry.ModItems;
-import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.ServerboundPaddleBoatPacket;
-import net.minecraft.sounds.SoundEvent;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.behavior.LongJumpUtil;
 import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.vehicle.VehicleEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 
 public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping {
-
+    protected static final EntityDataAccessor<Float> DATA_ID_POWER = SynchedEntityData.defineId(BarrelCannon.class, EntityDataSerializers.FLOAT);
     private int placedCooldown;
 
     public BarrelCannon(EntityType<?> entityType, Level level) {
@@ -45,6 +44,21 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
     }
 
     @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_ID_POWER, 1F);
+    }
+
+    public void setPower(float power) {
+        this.entityData.set(DATA_ID_POWER, power);
+    }
+
+    public float getPower() {
+        return this.entityData.get(DATA_ID_POWER);
+    }
+
+
+    @Override
     protected Item getDropItem() {
         return ModItems.BARREL_CANNON.get();
     }
@@ -52,18 +66,21 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
     @Override
     protected void readAdditionalSaveData(CompoundTag compoundTag) {
         this.placedCooldown = compoundTag.getInt("placedCooldown");
+        this.setPower(compoundTag.getFloat("power"));
     }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag compoundTag) {
         compoundTag.putInt("placedCooldown", this.placedCooldown);
+        compoundTag.putFloat("power", this.getPower());
+
     }
 
     @Override
     public void handleEntityEvent(byte id) {
         if (id == 61) {
             for (int i = 0; i < 8; i++) {
-                Vec3 vec3 = new Vec3(((double)this.random.nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
+                Vec3 vec3 = new Vec3(((double) this.random.nextFloat() - 0.5) * 0.1, Math.random() * 0.1 + 0.1, 0.0)
                         .xRot(-this.getXRot() * (float) (Math.PI / 180.0))
                         .yRot(-this.getYRot() * (float) (Math.PI / 180.0));
                 this.level()
@@ -97,14 +114,35 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
     }
 
     @Override
+    public InteractionResult interact(Player player, InteractionHand hand) {
+        if (player.getItemInHand(hand).is(Items.WIND_CHARGE) && this.getPower() < 2.0F) {
+            this.setPower(this.getPower() + 0.1F);
+            player.getItemInHand(hand).shrink(1);
+            this.playSound(SoundEvents.ITEM_PICKUP, 1.0F, 0.1F + this.getPower());
+            return InteractionResult.SUCCESS;
+        } else if (player.getItemInHand(hand).is(Items.WIND_CHARGE)) {
+            return InteractionResult.SUCCESS;
+        }
+
+        return super.interact(player, hand);
+    }
+
+    @Override
     public boolean canBeCollidedWith() {
-        return true;
+        return false;
     }
 
     @Override
     public boolean isPushable() {
-        return true;
+        return false;
     }
+
+
+    @Override
+    public boolean isPickable() {
+        return !this.isRemoved();
+    }
+
 
     @Override
     public void animateHurt(float yaw) {
@@ -115,10 +153,6 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
 
     @Override
     public void tick() {
-
-        if (!this.level().isClientSide) {
-            this.ejectPassengers();
-        }
 
         if (this.getHurtTime() > 0) {
             this.setHurtTime(this.getHurtTime() - 1);
@@ -133,14 +167,14 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
 
         this.checkInsideBlocks();
         if (this.placedCooldown-- <= 0) {
-            List<Entity> list = this.level().getEntities(this, this.getBoundingBox().inflate(0.2F, -0.01F, 0.2F), EntitySelector.pushableBy(this));
+            List<Entity> list = this.level().getEntities(this, this.getBoundingBox().inflate(0.1F, 0F, 0.1F), EntitySelector.pushableBy(this));
             if (!list.isEmpty()) {
                 boolean flag = !this.level().isClientSide && !(this.getControllingPassenger() instanceof Player);
 
                 for (Entity entity : list) {
                     BlastAttachment blastAttachment = entity.getData(ModAttachments.BLAST.get());
                     if (!entity.hasPassenger(this)) {
-                        if (flag
+                        if (!entity.isShiftKeyDown() && flag
                                 && this.getPassengers().size() < this.getMaxPassengers()
                                 && !entity.isPassenger()
                                 && this.hasEnoughSpaceFor(entity)
@@ -148,11 +182,8 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
                                 && !(entity instanceof WaterAnimal)
                                 && (!(entity instanceof Player) || blastAttachment.canRideBarrel())) {
                             entity.startRiding(this);
-                            blastAttachment.blastCooldown();
                             this.syncData(ModAttachments.BLAST.get());
                             this.playSound(SoundEvents.BARREL_OPEN, 1.0F, 1.0F);
-                        } else {
-                            this.push(entity);
                         }
                     }
                 }
@@ -202,53 +233,14 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
 
         BlastAttachment blastAttachment = entity.getData(ModAttachments.BLAST.get());
 
-        blastAttachment.blast();
+        this.level().broadcastEntityEvent(this, (byte) 61);
+        entity.stopRiding();
+        this.playSound(SoundEvents.BREEZE_WIND_CHARGE_BURST.value(), 1.5F, 1.0F);
+
+        entity.setYRot(this.getYRot());
+        blastAttachment.blast(this.getLookAngle().scale(this.getPower()));
 
         this.syncData(ModAttachments.BLAST.get());
-        this.level().broadcastEntityEvent(this, (byte) 61);
-        this.ejectPassengers();
-        if (entity instanceof LivingEntity living) {
-            Optional<Vec3> optional = calculateJumpVectorForAngle(living, entity.position().add(this.getViewVector(1.0F).scale(10.0F)), 1.4F, this.getXRot());
-            if (optional.isPresent()) {
-                this.playSound(SoundEvents.BREEZE_WIND_CHARGE_BURST.value(), 1.5F, 1.0F);
-                entity.setYRot(living.yBodyRot);
-                living.setDiscardFriction(true);
-                entity.setDeltaMovement(optional.get());
-            }
-        }
-    }
-
-    public static Optional<Vec3> calculateJumpVectorForAngle(LivingEntity mob, Vec3 target, float maxJumpVelocity, float angle) {
-        Vec3 vec3 = mob.position();
-        Vec3 vec31 = new Vec3(target.x - vec3.x, 0.0, target.z - vec3.z).normalize().scale(0.5);
-        Vec3 vec32 = target.subtract(vec31);
-        Vec3 vec33 = vec32.subtract(vec3);
-        float f = (float) angle * (float) Math.PI / 180.0F;
-        double d0 = Math.atan2(vec33.z, vec33.x);
-        double d1 = vec33.subtract(0.0, vec33.y, 0.0).lengthSqr();
-        double d2 = Math.sqrt(d1);
-        double d3 = vec33.y;
-        double d4 = mob.getGravity();
-        double d5 = Math.sin((double) (2.0F * f));
-        double d6 = Math.pow(Math.cos((double) f), 2.0);
-        double d7 = Math.sin((double) f);
-        double d8 = Math.cos((double) f);
-        double d9 = Math.sin(d0);
-        double d10 = Math.cos(d0);
-        double d11 = d1 * d4 / (d2 * d5 - 2.0 * d3 * d6);
-        if (d11 < 0.0) {
-            return Optional.empty();
-        } else {
-            double d12 = Math.sqrt(d11);
-            if (d12 > (double) maxJumpVelocity) {
-                return Optional.empty();
-            } else {
-                double d13 = d12 * d8;
-                double d14 = d12 * d7;
-
-                return Optional.of(new Vec3(d13 * d10, d14, d13 * d9).scale(0.95F));
-            }
-        }
     }
 
     @Override

@@ -2,11 +2,16 @@
   "required": true,
   "package": "baguchi.barrel_cannon.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "LivingEntityMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   },
   "overwrites": {
     "requireAnnotations": true
-  }
+  },
+  "client": [
+    "client.LivingEntityRendererMixin"
+  ]
 }
