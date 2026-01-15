@@ -180,7 +180,7 @@ public class BarrelCannon extends VehicleEntity implements PlayerRideableJumping
                                 && this.hasEnoughSpaceFor(entity)
                                 && entity instanceof LivingEntity
                                 && !(entity instanceof WaterAnimal)
-                                && (!(entity instanceof Player) || blastAttachment.canRideBarrel())) {
+                                && (entity instanceof Player && blastAttachment.canRideBarrel())) {
                             entity.startRiding(this);
                             this.syncData(ModAttachments.BLAST.get());
                             this.playSound(SoundEvents.BARREL_OPEN, 1.0F, 1.0F);
