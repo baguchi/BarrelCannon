@@ -24,9 +24,9 @@ public class ModAttachments {
 
                 @Override
                 public @Nullable BlastAttachment read(IAttachmentHolder iAttachmentHolder, RegistryFriendlyByteBuf registryFriendlyByteBuf, @Nullable BlastAttachment attachment) {
-                    BlastAttachment attachment = new BlastAttachment();
-                    attachment.setBlasted(registryFriendlyByteBuf.readBoolean());
-                    return attachment;
+                    BlastAttachment attachment2 = new BlastAttachment();
+                    attachment2.setBlasted(registryFriendlyByteBuf.readBoolean());
+                    return attachment2;
                 }
             }).build());
 }
