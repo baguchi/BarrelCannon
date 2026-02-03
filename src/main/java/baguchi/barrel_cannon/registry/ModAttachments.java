@@ -18,12 +18,12 @@ public class ModAttachments {
     public static final Supplier<AttachmentType<BlastAttachment>> BLAST = ATTACHMENT_TYPES.register(
             "tofu_living", () -> AttachmentType.serializable(BlastAttachment::new).sync(new AttachmentSyncHandler<>() {
                 @Override
-                public void write(RegistryFriendlyByteBuf registryFriendlyByteBuf, BlastAttachment tofuLivingAttachment, boolean b) {
-                    registryFriendlyByteBuf.writeBoolean(tofuLivingAttachment.isBlasted());
+                public void write(RegistryFriendlyByteBuf registryFriendlyByteBuf, BlastAttachment attachment, boolean b) {
+                    registryFriendlyByteBuf.writeBoolean(attachment.isBlasted());
                 }
 
                 @Override
-                public @Nullable BlastAttachment read(IAttachmentHolder iAttachmentHolder, RegistryFriendlyByteBuf registryFriendlyByteBuf, @Nullable BlastAttachment tofuLivingAttachment) {
+                public @Nullable BlastAttachment read(IAttachmentHolder iAttachmentHolder, RegistryFriendlyByteBuf registryFriendlyByteBuf, @Nullable BlastAttachment attachment) {
                     BlastAttachment attachment = new BlastAttachment();
                     attachment.setBlasted(registryFriendlyByteBuf.readBoolean());
                     return attachment;
